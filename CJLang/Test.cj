@@ -13,7 +13,7 @@ main: -> void
 	clear()
 
 	print("Hello World...")
-	
+	print(-)
 	new str() -> msg
 	str_concat("Welcome, ", userName, "\nName: ", userName, "\nAge: ", age)->msg
 
@@ -26,7 +26,7 @@ main: -> void
 	else :
 		print("You can vote in your first election")
 
-	input("Press any key to exit...")
+	input("Press enter key to exit...")
 
 
 main: str errorMessage -> exception

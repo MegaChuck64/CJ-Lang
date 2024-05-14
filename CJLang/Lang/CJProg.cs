@@ -234,7 +234,8 @@ internal class CJProg
                     catch (Exception e)
                     {
                         func.ErrorMessage = e.Message;
-                        throw new Exception($"Error on line {globalLineNum}: {e.Message}");
+                        
+                        throw new Exception($"Error on line {globalLineNum + 1}: {e.Message}");
                     }
                 }
             }

@@ -13,20 +13,24 @@ internal class PrintInstruction : Instruction
         var prmpt = splt[1].Split([')'])[0];
         if (prmpt.StartsWith('"') && prmpt.EndsWith('"'))
             Console.WriteLine(prmpt.Substring(1, prmpt.Length - 2));
-        else
+        else if (prmpt != null && prmpt.Length > 0)
         {
-            if (!currentFunc.Locals.ContainsKey(prmpt))
+            if (!currentFunc.Locals.TryGetValue(prmpt, out CJVar? value))
                 throw new Exception("Variable not found");
 
             //split newlines by \n
-            var str = currentFunc.Locals[prmpt].Value.ToString();
+            var str = value.Value?.ToString();
 
-            var lines = str.Split("\\n");
+            var lines = str?.Split("\\n") ?? [];
             foreach (var l in lines)
             {
                 Console.WriteLine(l);
             }
 
+        }
+        else
+        {
+            throw new Exception("Invalid print statement");
         }
     }
 }

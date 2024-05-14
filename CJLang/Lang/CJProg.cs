@@ -31,6 +31,8 @@ internal class CJProg
         bool inException = false;
         var ifBlock = false;
         var ifBlockNum = 0;
+        var elseBlock = false;
+        var elseBlockNum = 0;
         for (int i = 0; i < lines.Count; i++)
         {
             if (lines[i].StartsWith("//") || string.IsNullOrWhiteSpace(lines[i]))
@@ -134,20 +136,42 @@ internal class CJProg
                     ifBlock = true;
                     ifBlockNum = i;
                 }
+                else if (lines[i].Trim().StartsWith("else"))
+                {
+                    if (!ifBlock)
+                        throw new Exception("Else without if");
+                    
+                    elseBlock = true;
+                    elseBlockNum = i;
+                }
                 else if (lines[i].StartsWith("\t\t") && ifBlock)
                 {
-                    if (Funcs[currentFunc].IfBlocks == null)
-                        Funcs[currentFunc].IfBlocks = new Dictionary<int, List<(string line, int globalLineNum)>>();
+                    if (elseBlock)
+                    {
+                        if (Funcs[currentFunc].ElseBlocks == null)
+                            Funcs[currentFunc].ElseBlocks = new Dictionary<int, List<(string line, int globalLineNum)>>();
 
-                    if (!Funcs[currentFunc].IfBlocks.ContainsKey(ifBlockNum))
-                        Funcs[currentFunc].IfBlocks.Add(ifBlockNum, new List<(string line, int globalLineNum)>());
+                        if (!Funcs[currentFunc].ElseBlocks.ContainsKey(elseBlockNum))
+                            Funcs[currentFunc].ElseBlocks.Add(elseBlockNum, new List<(string line, int globalLineNum)>());
 
-                    Funcs[currentFunc].IfBlocks[ifBlockNum].Add((lines[i].Trim(), i));
+                        Funcs[currentFunc].ElseBlocks[elseBlockNum].Add((lines[i].Trim(), i));
+                    }
+                    else
+                    {
+                        if (Funcs[currentFunc].IfBlocks == null)
+                            Funcs[currentFunc].IfBlocks = new Dictionary<int, List<(string line, int globalLineNum)>>();
+
+                        if (!Funcs[currentFunc].IfBlocks.ContainsKey(ifBlockNum))
+                            Funcs[currentFunc].IfBlocks.Add(ifBlockNum, new List<(string line, int globalLineNum)>());
+
+                        Funcs[currentFunc].IfBlocks[ifBlockNum].Add((lines[i].Trim(), i));
+                    }
                     continue;
                 }
                 else
                 {
                     ifBlock = false;
+                    elseBlock = false;
                 }
 
                 if (inException)

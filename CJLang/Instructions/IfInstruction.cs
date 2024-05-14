@@ -9,7 +9,7 @@ internal class IfInstruction : Instruction
     {
         var splt = line.Split(['(']);
         var condition = splt[1].Split([')'])[0];
-        
+        currentFunc.LastIfResult = null;
         //get type and convert to literals 
         var splt2 = condition.Split([' ']);
         if (splt2.Length == 1)
@@ -31,7 +31,7 @@ internal class IfInstruction : Instruction
             {
                 throw new Exception("Invalid condition");
             }
-
+            currentFunc.LastIfResult = cond;
             if (cond)
             {
                 var lines = currentFunc.IfBlocks[lineNum];
@@ -120,7 +120,10 @@ internal class IfInstruction : Instruction
             var str = $"{left} {op} {right}";
             var type = leftType == CJVarType.f32 || leftType == CJVarType.f64 || rightType == CJVarType.f32 || rightType == CJVarType.f64 ? CJVarType.f64 : leftType;
 
+
             bool cond = CJProg.EvaluateCondition(type, str);
+            currentFunc.LastIfResult = cond;
+
             if (cond)
             {
                 var lines = currentFunc.IfBlocks[lineNum];

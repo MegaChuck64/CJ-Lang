@@ -1,5 +1,4 @@
-﻿using System.Security.Cryptography.X509Certificates;
-
+﻿
 namespace CJLang
 {
     internal class Program
@@ -42,6 +41,7 @@ namespace CJLang
             _instructionRunners.Add(new PrintRunner());
             _instructionRunners.Add(new InputRunner());
             _instructionRunners.Add(new StrConcatRunner());
+            _instructionRunners.Add(new ClearRunner());
 
 
 
@@ -296,6 +296,25 @@ namespace CJLang
 
     }
 
+    //clear terminal
+    internal class ClearRunner : InstructionRunner
+    {
+        public override string Name => "clear";
+
+        public override void Run(CJProg prog, CJFunc currentFunc, string line)
+        {
+            var splt = line.Split(new[] { '(', ' ', ')' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+            //clear()
+            if (splt.Length == 1 && splt[0] == "clear")
+            {
+                Console.Clear();
+            }
+            else 
+                throw new Exception("Invalid usage of clear. Expected 'clear()'");
+        }
+    }
+
     internal class StrConcatRunner : InstructionRunner
     {
         public override string Name => "str_concat";
@@ -401,6 +420,10 @@ namespace CJLang
             prmpt = prmpt.Substring(1, prmpt.Length - 2);
             Console.WriteLine(prmpt);
             var input = Console.ReadLine();
+
+            if (!line.Contains("->"))
+                return;
+                
             var destVar = line.Split(["->"], StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)[1];
             
             if (!currentFunc.Locals.ContainsKey(destVar))

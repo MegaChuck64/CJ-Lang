@@ -8,19 +8,18 @@ main: -> void
 	new str(userInput) -> userAge
 	
 	//can parse a str in the constructor
-	new i16(userAge) -> age
-	print(age)
-
-	set i16(50) -> age
-	print(age)
-
+	new u8(userAge) -> age
+	
+	clear()
 
 	print("Hello World...")
 	
 	new str() -> msg
-	str_concat("Welcome, ", userName, "\nName: ", userName, "\nAge: ", userAge)->msg
+	str_concat("Welcome, ", userName, "\nName: ", userName, "\nAge: ", age)->msg
 
 	print(msg)
+
+	input("Press any key to exit...")
 
 
 main: str errorMessage -> exception

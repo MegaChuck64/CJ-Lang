@@ -131,7 +131,7 @@ internal class CJProg
             else if (lines[i].StartsWith('\t'))
             {
                 
-                if (lines[i].Trim().StartsWith("if"))
+                if (lines[i].Trim().StartsWith("if") || lines[i].Trim().StartsWith("elif"))
                 {
                     ifBlock = true;
                     ifBlockNum = i;

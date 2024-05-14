@@ -19,10 +19,12 @@ main: -> void
 
 	print(msg)
 
-	if (age >= 18) :
+	if (age > 18) :
 		print("You can vote")
-	else :
+	elif (age < 18) :
 		print("You can't vote")
+	else :
+		print("You can vote in your first election")
 
 	input("Press any key to exit...")
 

@@ -2,9 +2,9 @@
 
 namespace CJLang.Instructions;
 
+[Instruction("set", "Set a variable's value")]
 internal class SetVarInstruction : Instruction
 {
-    public override string Name => "set";
     public override void Run(CJProg prog, CJFunc currentFunc, string line)
     {
         //set i8(5) -> userAge

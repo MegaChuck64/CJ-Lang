@@ -1,4 +1,5 @@
 ﻿using CJLang.Instructions;
+using System.Reflection;
 namespace CJLang.Lang;
 
 internal class CJProg
@@ -6,18 +7,25 @@ internal class CJProg
     public Dictionary<string, CJFunc> Funcs { get; set; }
     public (object val, int line, string func) RetVal { get; set; }
 
-    private List<Instruction> _instructionRunners = [];
+    private List<(string name, Instruction instr)> _instructionRunners = [];
     public CJProg(List<string> lines)
     {
         Funcs = [];
-        _instructionRunners.Add(new SetVarInstruction());
-        _instructionRunners.Add(new NewVarInstruction());
-        _instructionRunners.Add(new PrintInstruction());
-        _instructionRunners.Add(new InputInstruction());
-        _instructionRunners.Add(new StrConcatInstruction());
-        _instructionRunners.Add(new ClearInstruction());
 
-
+        //populate instruction runners based on attributes
+        var types = Assembly.GetExecutingAssembly().GetTypes();
+        foreach (var type in types)
+        {
+            if (type.IsSubclassOf(typeof(Instruction)))
+            {
+                var attr = type.GetCustomAttribute<InstructionAttribute>();
+                if (attr != null)
+                {
+                    var inst = (Instruction)Activator.CreateInstance(type);
+                    _instructionRunners.Add((attr.Name, inst));
+                }
+            }
+        }
 
         var currentFunc = string.Empty;
         bool inException = false;
@@ -169,10 +177,17 @@ internal class CJProg
             (string line, int globalLineNum) = instrs[localLinNum];
             foreach (var runner in _instructionRunners)
             {
-                if (line.StartsWith(runner.Name))
+                if (line.StartsWith(runner.name))
                 {
-                    runner.Run(this, func, line);
-                    break;
+                    try
+                    {
+                        runner.instr.Run(this, func, line);
+                    }
+                    catch (Exception e)
+                    {
+                        func.ErrorMessage = e.Message;
+                        throw new Exception($"Error on line {globalLineNum}: {e.Message}");
+                    }
                 }
             }
         }

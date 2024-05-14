@@ -4,10 +4,9 @@ namespace CJLang.Instructions;
 
 
 //clear terminal
+[Instruction("clear", "Clears the terminal")]
 internal class ClearInstruction : Instruction
 {
-    public override string Name => "clear";
-
     public override void Run(CJProg prog, CJFunc currentFunc, string line)
     {
         var splt = line.Split(new[] { '(', ' ', ')' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);

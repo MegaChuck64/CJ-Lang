@@ -2,10 +2,9 @@
 namespace CJLang.Instructions;
 
 
+[Instruction("str_concat", "Concatenates literals and variables and sets a string variable as ouput")]
 internal class StrConcatInstruction : Instruction
 {
-    public override string Name => "str_concat";
-
     public override void Run(CJProg prog, CJFunc currentFunc, string line)
     {
         //str_concat("Hello, ", userName, ". You are ", userAgeStr, " years old.\n") -> dest

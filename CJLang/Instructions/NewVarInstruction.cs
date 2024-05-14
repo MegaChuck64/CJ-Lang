@@ -2,10 +2,9 @@
 
 namespace CJLang.Instructions;
 
+[Instruction("new", "Creates a new variable")]
 internal class NewVarInstruction : Instruction
 {
-    public override string Name => "new";
-
     public override void Run(CJProg prog, CJFunc currentFunc, string line)
     {
         //new str() -> userInput

@@ -19,6 +19,9 @@ main: -> void
 
 	print(msg)
 
+	if (age >= 18) :
+		print("You can vote")
+
 	input("Press any key to exit...")
 
 

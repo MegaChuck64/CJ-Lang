@@ -5,7 +5,7 @@ namespace CJLang.Instructions;
 [Instruction("str_concat", "Concatenates literals and variables and sets a string variable as ouput")]
 internal class StrConcatInstruction : Instruction
 {
-    public override void Run(CJProg prog, CJFunc currentFunc, string line)
+    public override void Run(CJFunc currentFunc, string line, int lineNum)
     {
         //str_concat("Hello, ", userName, ". You are ", userAgeStr, " years old.\n") -> dest
         var splt = line.Split(['(']);

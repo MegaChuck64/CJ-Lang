@@ -7,7 +7,7 @@ internal class CJFunc
     public Dictionary<string, CJVar> Locals { get; set; } = [];
     public CJVar Ret { get; set; }
     public List<(string line, int globalLineNum)> Instrs { get; set; }
-
+    public Dictionary<int, List<(string line, int globalLineNum)>> IfBlocks { get; set; }
     public string ErrorMessage { get; set; }
     public string ErrorVarName { get; set; }
     public List<(string line, int globalLineNum)> ExceptionInstrs { get; set; }

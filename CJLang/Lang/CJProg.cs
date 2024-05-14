@@ -7,7 +7,7 @@ internal class CJProg
     public Dictionary<string, CJFunc> Funcs { get; set; }
     public (object val, int line, string func) RetVal { get; set; }
 
-    private List<(string name, Instruction instr)> _instructionRunners = [];
+    public static List<(string name, Instruction instr)> InstructionRunners = [];
     public CJProg(List<string> lines)
     {
         Funcs = [];
@@ -22,13 +22,15 @@ internal class CJProg
                 if (attr != null)
                 {
                     var inst = (Instruction)Activator.CreateInstance(type);
-                    _instructionRunners.Add((attr.Name, inst));
+                    InstructionRunners.Add((attr.Name, inst));
                 }
             }
         }
 
         var currentFunc = string.Empty;
         bool inException = false;
+        var ifBlock = false;
+        var ifBlockNum = 0;
         for (int i = 0; i < lines.Count; i++)
         {
             if (lines[i].StartsWith("//") || string.IsNullOrWhiteSpace(lines[i]))
@@ -126,6 +128,28 @@ internal class CJProg
             }
             else if (lines[i].StartsWith('\t'))
             {
+                
+                if (lines[i].Trim().StartsWith("if"))
+                {
+                    ifBlock = true;
+                    ifBlockNum = i;
+                }
+                else if (lines[i].StartsWith("\t\t") && ifBlock)
+                {
+                    if (Funcs[currentFunc].IfBlocks == null)
+                        Funcs[currentFunc].IfBlocks = new Dictionary<int, List<(string line, int globalLineNum)>>();
+
+                    if (!Funcs[currentFunc].IfBlocks.ContainsKey(ifBlockNum))
+                        Funcs[currentFunc].IfBlocks.Add(ifBlockNum, new List<(string line, int globalLineNum)>());
+
+                    Funcs[currentFunc].IfBlocks[ifBlockNum].Add((lines[i].Trim(), i));
+                    continue;
+                }
+                else
+                {
+                    ifBlock = false;
+                }
+
                 if (inException)
                 {
                     Funcs[currentFunc].ExceptionInstrs.Add((lines[i].Trim(), i));
@@ -146,7 +170,7 @@ internal class CJProg
 
         try
         {
-            ProcessLines(currentFunc.Instrs, currentFunc);
+            ProcessLines(currentFunc.Instrs, currentFunc, InstructionRunners);
         }
         catch (Exception e)
         {
@@ -159,12 +183,12 @@ internal class CJProg
                     Type = CJVarType.str,
                     Value = e.Message,
                 });
-                ProcessLines(currentFunc.ExceptionInstrs, currentFunc);
+                ProcessLines(currentFunc.ExceptionInstrs, currentFunc, InstructionRunners);
             }
         }
     }
 
-    private void ProcessLines(List<(string line, int globalLineNum)> instrs, CJFunc func)
+    public static void ProcessLines(List<(string line, int globalLineNum)> instrs, CJFunc func, List<(string name, Instruction instr)> instructionRunners)
     {
         //add args to locals
         foreach (var arg in func.Args)
@@ -175,13 +199,13 @@ internal class CJProg
         for (int localLinNum = 0; localLinNum < instrs.Count; localLinNum++)
         {
             (string line, int globalLineNum) = instrs[localLinNum];
-            foreach (var runner in _instructionRunners)
+            foreach (var (name, instr) in instructionRunners)
             {
-                if (line.StartsWith(runner.name))
+                if (line.StartsWith(name))
                 {
                     try
                     {
-                        runner.instr.Run(this, func, line);
+                        instr.Run(func, line, globalLineNum);
                     }
                     catch (Exception e)
                     {
@@ -191,6 +215,97 @@ internal class CJProg
                 }
             }
         }
+    }
+
+    public static bool EvaluateCondition(CJVarType type, string line)
+    {
+        if (type == CJVarType._bool)
+        {
+            //true == false
+            //true
+            
+            if (line == "true")
+                return true;
+            if (line == "false")
+                return false;
+
+            var splt = line.Split([' ']);
+            var op = splt[1];
+            var left = splt[0];
+            var right = splt[2];
+
+            if (op != "==" && op != "!=")
+                throw new Exception("Invalid operator");
+
+            if (op == "==")
+                return left == right;
+            else if (op == "!=")
+                return left != right;
+
+            return false;
+        }
+        else if (type == CJVarType.str)
+        {
+            var splt = line.Split([' ']);
+            var op = splt[1];
+            var left = splt[0];
+            var right = splt[2];
+
+            if (op != "==" && op != "!=")
+                throw new Exception("Invalid operator");
+
+            if (op == "==")
+                return left == right;
+            else if (op == "!=")
+                return left != right;
+
+            return false;
+        }
+        else if (type >= CJVarType.i8 && type < CJVarType.u64)
+        {
+            var splt = line.Split([' ']);
+            var op = splt[1];
+            var left = splt[0];
+            var right = splt[2];
+
+            if (!int.TryParse(left, out var l) || !int.TryParse(right, out var r))
+                throw new Exception("Invalid operands");
+
+            return op switch
+            {
+                "==" => l == r,
+                "!=" => l != r,
+                "<" => l < r,
+                ">" => l > r,
+                "<=" => l <= r,
+                ">=" => l >= r,
+                _ => false,
+            };
+        }
+        else if (type == CJVarType.f32 || type == CJVarType.f64)
+        {
+            var splt = line.Split([' ']);
+            var op = splt[1];
+            var left = splt[0];
+            var right = splt[2];
+
+            if (!double.TryParse(left, out var l) || !double.TryParse(right, out var r))
+                throw new Exception("Invalid operands");
+
+            return op switch
+            {
+                "==" => l == r,
+                "!=" => l != r,
+                "<" => l < r,
+                ">" => l > r,
+                "<=" => l <= r,
+                ">=" => l >= r,
+                _ => false,
+            };
+        }
+        else
+            throw new Exception("Invalid type");
+
     }
 
     public static object? GetValFromStr(CJVarType type, string str)

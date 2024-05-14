@@ -5,7 +5,7 @@ namespace CJLang.Instructions;
 
 internal abstract class Instruction
 {
-    public abstract void Run(CJProg prog, CJFunc currentFunc, string line);
+    public abstract void Run(CJFunc currentFunc, string line, int lineNum);
 }
 
 

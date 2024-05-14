@@ -5,7 +5,7 @@ namespace CJLang.Instructions;
 [Instruction("print", "Prints a variable or literal")]
 internal class PrintInstruction : Instruction
 {
-    public override void Run(CJProg prog, CJFunc currentFunc, string line)
+    public override void Run(CJFunc currentFunc, string line, int lineNum)
     {
         //print string literals and variables
 

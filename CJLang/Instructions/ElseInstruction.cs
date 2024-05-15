@@ -5,15 +5,15 @@ namespace CJLang.Instructions;
 [Instruction("else", "Else statement")]
 internal class ElseInstruction : Instruction
 {
-    public override void Run(CJFunc currentFunc, string line, int lineNum)
+    public override void Run(CJFunc currentFunc, string line, int globalLineNum, int localLineNum)
     {
-        if ((currentFunc.LastIfResult ?? false) == false)
+        if ((currentFunc.LastBlockConditionResult ?? false) == false)
         {
-            var lines = currentFunc.Blocks[lineNum];
+            var lines = currentFunc.Blocks[globalLineNum];
 
             CJProg.ProcessLines(lines, currentFunc, CJProg.InstructionRunners);
 
-            currentFunc.LastIfResult = null;
+            currentFunc.LastBlockConditionResult = null;
         }
 
     }

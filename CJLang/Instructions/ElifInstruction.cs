@@ -5,16 +5,16 @@ namespace CJLang.Instructions;
 [Instruction("elif", "Else if statement")]
 internal class ElifInstruction : Instruction
 {
-    public override void Run(CJFunc currentFunc, string line, int lineNum)
+    public override void Run(CJFunc currentFunc, string line, int globalLineNum, int localLineNum)
     {
-        if (currentFunc.LastIfResult ?? false)
+        if (currentFunc.LastBlockConditionResult ?? false)
         {
             return;
         }
 
         var splt = line.Split(['(']);
         var condition = splt[1].Split([')'])[0];
-        currentFunc.LastIfResult = null;
+        currentFunc.LastBlockConditionResult = null;
         //get type and convert to literals 
         var splt2 = condition.Split([' ']);
         if (splt2.Length == 1)
@@ -36,10 +36,10 @@ internal class ElifInstruction : Instruction
             {
                 throw new Exception("Invalid condition");
             }
-            currentFunc.LastIfResult = cond;
+            currentFunc.LastBlockConditionResult = cond;
             if (cond)
             {
-                var lines = currentFunc.Blocks[lineNum];
+                var lines = currentFunc.Blocks[globalLineNum];
                 CJProg.ProcessLines(lines, currentFunc, CJProg.InstructionRunners);
             }
         }
@@ -127,11 +127,11 @@ internal class ElifInstruction : Instruction
 
 
             bool cond = CJProg.EvaluateCondition(type, str);
-            currentFunc.LastIfResult = cond;
+            currentFunc.LastBlockConditionResult = cond;
 
             if (cond)
             {
-                var lines = currentFunc.Blocks[lineNum];
+                var lines = currentFunc.Blocks[globalLineNum];
                 CJProg.ProcessLines(lines, currentFunc, CJProg.InstructionRunners);
             }
         }

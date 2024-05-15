@@ -5,7 +5,7 @@ namespace CJLang.Instructions;
 [Instruction("input", "Reads input from the user")]
 internal class InputInstruction : Instruction
 {
-    public override void Run(CJFunc currentFunc, string line, int lineNum)
+    public override void Run(CJFunc currentFunc, string line, int globalLineNum, int localLineNum)
     {
         var splt = line.Split(['(']);
         var prmpt = splt[1].Split([')'])[0];

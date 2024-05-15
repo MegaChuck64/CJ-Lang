@@ -5,7 +5,7 @@ namespace CJLang.Instructions;
 [Instruction("new", "Creates a new variable")]
 internal class NewVarInstruction : Instruction
 {
-    public override void Run(CJFunc currentFunc, string line, int lineNum)
+    public override void Run(CJFunc currentFunc, string line, int globalLineNum, int localLineNum)
     {
         //new str() -> userInput
         //new i32(5) -> userAge

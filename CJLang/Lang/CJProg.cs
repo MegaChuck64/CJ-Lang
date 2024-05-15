@@ -8,6 +8,8 @@ internal class CJProg
     public (object val, int line, string func) RetVal { get; set; }
 
     public static List<(string name, Instruction instr)> InstructionRunners = [];
+
+    public static int? NextLine { get; set; } = null;
     public CJProg(List<string> lines)
     {
         Funcs = [];
@@ -205,16 +207,22 @@ internal class CJProg
             func.Locals.Add(arg.Key, arg.Value);
         }
 
-        for (int localLinNum = 0; localLinNum < instrs.Count; localLinNum++)
+        for (int localLineNum = 0; localLineNum < instrs.Count; localLineNum++)
         {
-            (string line, int globalLineNum) = instrs[localLinNum];
+            if (NextLine != null && NextLine != localLineNum)
+            {
+                localLineNum = NextLine.Value;
+                NextLine = null;                
+            }
+
+            (string line, int globalLineNum) = instrs[localLineNum];
             foreach (var (name, instr) in instructionRunners)
             {
                 if (line.StartsWith(name))
                 {
                     try
                     {
-                        instr.Run(func, line, globalLineNum);
+                        instr.Run(func, line, globalLineNum, localLineNum);
                     }
                     catch (Exception e)
                     {
@@ -406,6 +414,64 @@ internal class CJProg
             CJVarType._null => null,
             _ => null,
         };
+    }
+
+    public static string GetStrFromConcat(CJFunc currentFunc, string line)
+    {
+        //"Hello, ", userName, ". You are ", userAgeStr, " years old.\n"
+        var str = string.Empty;
+        
+        var inQuote = false;
+        var varName = string.Empty;
+        for (int i = 0; i < line.Length; i++)
+        {
+            if (line[i] == '"')
+            {
+                inQuote = !inQuote;
+                continue;
+            }
+
+            if (inQuote)
+            {
+                str += line[i];
+                continue;
+            }
+
+            if (line[i] == ',')
+            {
+                if (varName != string.Empty)
+                {
+                    if (!currentFunc.Locals.ContainsKey(varName))
+                        throw new Exception("Variable not found");
+
+                    str += currentFunc.Locals[varName].Value;
+                    varName = string.Empty;
+                }
+                continue;
+            }
+
+            if (line[i] == ' ')
+                continue;
+
+            if (line[i] == '\n')
+            {
+                str += '\n';
+                continue;
+            }
+
+            //variable
+            varName += line[i];
+            
+            if (i == line.Length - 1)
+            {
+                if (!currentFunc.Locals.ContainsKey(varName))
+                    throw new Exception("Variable not found");
+
+                str += currentFunc.Locals[varName].Value;
+            }
+        }
+
+        return str;
     }
 
 }

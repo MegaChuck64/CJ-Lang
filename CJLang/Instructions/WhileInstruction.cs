@@ -1,12 +1,11 @@
 ﻿using CJLang.Lang;
-using System.Numerics;
 
 namespace CJLang.Instructions;
 
-[Instruction("if", "if condition evaluates to true, execute body")]
-internal class IfInstruction : Instruction
+[Instruction("while", "While loop")]
+internal class WhileInstruction : Instruction
 {
-    public override void Run(CJFunc currentFunc, string line, int globalLineNum, int localLineNum)
+    public override void Run(CJFunc currentFunc, string line, int globalLinNum, int localLineNum)
     {
         var splt = line.Split(['(']);
         var condition = splt[1].Split([')'])[0];
@@ -35,7 +34,7 @@ internal class IfInstruction : Instruction
             currentFunc.LastBlockConditionResult = cond;
             if (cond)
             {
-                var lines = currentFunc.Blocks[globalLineNum];
+                var lines = currentFunc.Blocks[globalLinNum];
                 CJProg.ProcessLines(lines, currentFunc, CJProg.InstructionRunners);
             }
         }
@@ -102,7 +101,7 @@ internal class IfInstruction : Instruction
                 }
                 else if (double.TryParse(right, out _))
                 {
-                    rightType = CJVarType.f64;                
+                    rightType = CJVarType.f64;
                 }
                 else if (right.StartsWith('"') && right.EndsWith('"'))
                 {
@@ -111,10 +110,10 @@ internal class IfInstruction : Instruction
                 }
             }
 
-            if (leftType != rightType && 
-                !(leftType <= CJVarType.f64 && 
-                leftType >= CJVarType.i8 && 
-                rightType <= CJVarType.f64 && 
+            if (leftType != rightType &&
+                !(leftType <= CJVarType.f64 &&
+                leftType >= CJVarType.i8 &&
+                rightType <= CJVarType.f64 &&
                 rightType >= CJVarType.i8))
                 throw new Exception("Invalid type");
 
@@ -127,8 +126,11 @@ internal class IfInstruction : Instruction
 
             if (cond)
             {
-                var lines = currentFunc.Blocks[globalLineNum];
+                var lines = currentFunc.Blocks[globalLinNum];
+
                 CJProg.ProcessLines(lines, currentFunc, CJProg.InstructionRunners);
+
+                CJProg.NextLine = globalLinNum;
             }
         }
         else

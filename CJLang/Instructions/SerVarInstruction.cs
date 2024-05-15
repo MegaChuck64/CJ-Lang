@@ -5,7 +5,7 @@ namespace CJLang.Instructions;
 [Instruction("set", "Set a variable's value")]
 internal class SetVarInstruction : Instruction
 {
-    public override void Run(CJFunc currentFunc, string line, int lineNum)
+    public override void Run(CJFunc currentFunc, string line, int globalLineNum, int localLineNum)
     {
         //set i8(5) -> userAge
 

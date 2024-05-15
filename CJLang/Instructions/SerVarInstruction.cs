@@ -23,38 +23,52 @@ internal class SetVarInstruction : Instruction
         splt = line.Split(['(']);
         splt = splt[1].Split(new char[] { ')', '"' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
-        object? initVal;
-        //no initialization
+        object? initVal = null; 
 
-        if (splt[0].StartsWith("->"))
+        //set u8(age + 1) -> age
+        if (splt.Length == 0)
+            throw new Exception("Invalid initialization");
+
+        //evaluating expression
+        //check if contains operator
+        if (splt[0].Contains('+') || splt[0].Contains('-') || splt[0].Contains('*') || splt[0].Contains('/'))
         {
-            initVal = CJProg.DefaultVal(type);
+            var val = CJProg.EvaluateArithmatic(currentFunc, splt[0]);
+            if (val == null)
+                throw new Exception("Invalid expression");
+
+            initVal = val;
         }
         else
         {
-            //var or literal
-            var val = splt[0];
-
-            if (val.StartsWith('"') && val.EndsWith('"'))
-                initVal = val.Substring(1, val.Length - 2);
-            else if (val == "null" || val == "true" || val == "false" || int.TryParse(val, out _) || double.TryParse(val, out _))
+            //no initialization
+            if (splt[0].StartsWith("->"))
             {
-                initVal = CJProg.GetValFromStr(type, val);
+                initVal = CJProg.DefaultVal(type);
             }
             else
             {
-                if (!currentFunc.Locals.ContainsKey(val))
-                    throw new Exception("Variable not found");
+                //var or literal
+                var val = splt[0];
 
-                if (currentFunc.Locals[val].Type != type && currentFunc.Locals[val].Type != CJVarType.str)
-                    throw new Exception("Invalid type");
+                if (val.StartsWith('"') && val.EndsWith('"'))
+                    initVal = val.Substring(1, val.Length - 2);
+                else
+                {
+                    if (!currentFunc.Locals.ContainsKey(val))
+                        throw new Exception("Variable not found");
 
-                initVal =
-                    currentFunc.Locals[val].Type == CJVarType.str ?
-                    CJProg.GetValFromStr(type, currentFunc.Locals[val].Value as string ?? CJProg.DefaultVal(type)?.ToString() ?? "0") :
-                    currentFunc.Locals[val].Value;
+                    if (currentFunc.Locals[val].Type != type && currentFunc.Locals[val].Type != CJVarType.str)
+                        throw new Exception("Invalid type");
+
+                    initVal =
+                        currentFunc.Locals[val].Type == CJVarType.str ?
+                        CJProg.GetValFromStr(type, currentFunc.Locals[val].Value as string ?? CJProg.DefaultVal(type)?.ToString() ?? "0") :
+                        currentFunc.Locals[val].Value;
+                }
             }
         }
+
 
         currentFunc.Locals[destVar].Value = initVal;
 

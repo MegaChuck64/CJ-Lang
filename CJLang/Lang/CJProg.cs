@@ -131,12 +131,12 @@ internal class CJProg
             else if (lines[i].StartsWith('\t'))
             {
                 
-                if (lines[i].Trim().StartsWith("if") || lines[i].Trim().StartsWith("elif"))
+                if (lines[i].Trim().StartsWith("if") || lines[i].Trim().StartsWith("while"))
                 {
                     inBlock = true;
                     blockNum = i;
                 }
-                else if (lines[i].Trim().StartsWith("else"))
+                else if (lines[i].Trim().StartsWith("else") || lines[i].Trim().StartsWith("elif"))
                 {
                     if (!inBlock)
                         throw new Exception("Else without if");
@@ -233,6 +233,92 @@ internal class CJProg
                 }
             }
         }
+    }
+
+
+    public static object? EvaluateArithmatic(CJFunc func, string line)
+    {
+        //age + 1 - 4 + testInt
+        object? val = null;
+        //split on operators
+        var splt = line.Split(new char[] { '+', '-', '*', '/', '%'}, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+        var operators = line.Where(c => c == '+' || c == '-' || c == '*' || c == '/' || c == '%').ToArray();
+
+        if (splt.Length == 1)
+        {
+            if (func.Locals.ContainsKey(splt[0]))
+            {
+                val = func.Locals[splt[0]].Value;
+                return true;
+            }
+            else
+            {
+                if (int.TryParse(splt[0], out var i))
+                {
+                    val = i;
+                    return true;
+                }
+                else if (double.TryParse(splt[0], out var d))
+                {
+                    val = d;
+                    return true;
+                }
+                else
+                {
+                    val = null;
+                    return false;
+                }
+            }
+        }
+        else
+        {
+            var total = 0;
+            var totalD = 0.0;
+            var isInt = true;
+            for (int i = 0; i < splt.Length; i++)
+            {
+                if (func.Locals.ContainsKey(splt[i]))
+                {
+                    if (func.Locals[splt[i]].Type == CJVarType.f32 || func.Locals[splt[i]].Type == CJVarType.f64)
+                        isInt = false;
+
+                    if (isInt)
+                        total += Convert.ToInt32(func.Locals[splt[i]].Value);
+                    else
+                        totalD += Convert.ToDouble(func.Locals[splt[i]].Value);
+                }
+                else
+                {
+                    if (int.TryParse(splt[i], out var v))
+                    {
+                        total += v;
+                    }
+                    else if (double.TryParse(splt[i], out var d))
+                    {
+                        isInt = false;
+                        totalD += d;
+                    }
+                    else
+                    {
+                        val = null;
+                        return false;
+                    }
+                }
+            }
+
+            if (isInt)
+            {
+                val = total;
+            }
+            else
+            {
+                val = totalD;
+            }
+        }
+
+        return val;
+
     }
 
     public static bool EvaluateCondition(CJVarType type, string line)

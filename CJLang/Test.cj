@@ -26,6 +26,14 @@ main: -> void
 	else :
 		print("Congrats, ", userName, ". You can vote in your first election.")
 
+	while (age < 18) :
+		print("You are not old enough to vote.")
+		set u8(age + 1) -> age
+		print("You are now ", age, " years old.")
+
+	print("Goodbye, ", userName, ".")
+
+
 	input("Press enter key to exit...")
 
 

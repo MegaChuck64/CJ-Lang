@@ -130,7 +130,7 @@ internal class WhileInstruction : Instruction
 
                 CJProg.ProcessLines(lines, currentFunc, CJProg.InstructionRunners);
 
-                CJProg.NextLine = globalLinNum;
+                CJProg.NextLine = localLineNum;
             }
         }
         else

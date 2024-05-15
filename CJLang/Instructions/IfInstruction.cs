@@ -34,7 +34,7 @@ internal class IfInstruction : Instruction
             currentFunc.LastIfResult = cond;
             if (cond)
             {
-                var lines = currentFunc.IfBlocks[lineNum];
+                var lines = currentFunc.Blocks[lineNum];
                 CJProg.ProcessLines(lines, currentFunc, CJProg.InstructionRunners);
             }
         }
@@ -126,7 +126,7 @@ internal class IfInstruction : Instruction
 
             if (cond)
             {
-                var lines = currentFunc.IfBlocks[lineNum];
+                var lines = currentFunc.Blocks[lineNum];
                 CJProg.ProcessLines(lines, currentFunc, CJProg.InstructionRunners);
             }
         }

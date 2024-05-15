@@ -9,7 +9,7 @@ internal class ElseInstruction : Instruction
     {
         if ((currentFunc.LastIfResult ?? false) == false)
         {
-            var lines = currentFunc.ElseBlocks[lineNum];
+            var lines = currentFunc.Blocks[lineNum];
 
             CJProg.ProcessLines(lines, currentFunc, CJProg.InstructionRunners);
 

@@ -39,7 +39,7 @@ internal class ElifInstruction : Instruction
             currentFunc.LastIfResult = cond;
             if (cond)
             {
-                var lines = currentFunc.IfBlocks[lineNum];
+                var lines = currentFunc.Blocks[lineNum];
                 CJProg.ProcessLines(lines, currentFunc, CJProg.InstructionRunners);
             }
         }
@@ -131,7 +131,7 @@ internal class ElifInstruction : Instruction
 
             if (cond)
             {
-                var lines = currentFunc.IfBlocks[lineNum];
+                var lines = currentFunc.Blocks[lineNum];
                 CJProg.ProcessLines(lines, currentFunc, CJProg.InstructionRunners);
             }
         }

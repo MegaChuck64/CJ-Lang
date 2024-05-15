@@ -13,7 +13,7 @@ main: -> void
 	clear()
 
 	print("Hello World...")
-	print(-)
+	print("")
 	new str() -> msg
 	str_concat("Welcome, ", userName, "\nName: ", userName, "\nAge: ", age)->msg
 

@@ -1,4 +1,4 @@
-main: -> void
+void main:
 	new str() -> userInput
 	
 	input("enter name") -> userInput	
@@ -37,5 +37,5 @@ main: -> void
 	input("Press enter key to exit...")
 
 
-main: str errorMessage -> exception
+exception main: str errorMessage
 	print("An Error Occured: ", errorMessage)

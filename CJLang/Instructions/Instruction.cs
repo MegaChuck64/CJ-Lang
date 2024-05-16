@@ -8,7 +8,7 @@ internal abstract class Instruction
     public abstract void Run(CJFunc currentFunc, string line, int globalLineNum, int localLineNum);
 }
 
-
+[AttributeUsage(AttributeTargets.Class)]
 internal class InstructionAttribute : Attribute
 {
     public string Name { get; set; }
@@ -17,5 +17,11 @@ internal class InstructionAttribute : Attribute
     {
         Name = name;
         Description = description;
+    }
+
+    public InstructionAttribute()
+    {
+        Name = string.Empty;
+        Description = string.Empty;
     }
 }

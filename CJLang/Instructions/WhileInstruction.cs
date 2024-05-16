@@ -23,9 +23,9 @@ internal class WhileInstruction : Instruction
             {
                 cond = false;
             }
-            else if (currentFunc.Locals.ContainsKey(splt2[0]))
+            else if (currentFunc.Locals.TryGetValue(splt2[0], out CJVar? value))
             {
-                cond = (bool)currentFunc.Locals[splt2[0]].Value;
+                cond = (bool)(value.Value ?? false);
             }
             else
             {
@@ -48,8 +48,8 @@ internal class WhileInstruction : Instruction
             var rightType = CJVarType._null;
             if (currentFunc.Locals.TryGetValue(left, out var varLeft))
             {
-                left = varLeft.Value.ToString();
-                leftType = varLeft.Type;
+                left = varLeft?.Value?.ToString() ?? "0";
+                leftType = varLeft?.Type ?? CJVarType.u8;
             }
             else
             {
@@ -74,14 +74,14 @@ internal class WhileInstruction : Instruction
                 else if (left.StartsWith('"') && left.EndsWith('"'))
                 {
                     leftType = CJVarType.str;
-                    left = left.Substring(1, left.Length - 2);
+                    left = left[1..^1];
                 }
             }
 
             if (currentFunc.Locals.TryGetValue(right, out var varRight))
             {
-                right = varRight.Value.ToString();
-                rightType = varRight.Type;
+                right = varRight?.Value?.ToString() ?? "0";
+                rightType = varRight?.Type ?? CJVarType.u8;
             }
             else
             {
@@ -106,7 +106,7 @@ internal class WhileInstruction : Instruction
                 else if (right.StartsWith('"') && right.EndsWith('"'))
                 {
                     rightType = CJVarType.str;
-                    right = right.Substring(1, right.Length - 2);
+                    right = right[1..^1];
                 }
             }
 

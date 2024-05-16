@@ -1,5 +1,5 @@
 ﻿using CJLang.Instructions;
-using System.Reflection;
+
 namespace CJLang.Lang;
 
 internal class CJProg
@@ -10,24 +10,28 @@ internal class CJProg
     public static List<(string name, Instruction instr)> InstructionRunners = [];
 
     public static int? NextLine { get; set; } = null;
+
+    internal static readonly string[] lineSeperator = [" ", ":", "->", ","];
+    internal static readonly char[] operationSeperator = ['+', '-', '*', '/', '%'];
+
     public CJProg(List<string> lines)
     {
         Funcs = [];
 
-        //populate instruction runners based on attributes
-        var types = Assembly.GetExecutingAssembly().GetTypes();
-        foreach (var type in types)
-        {
-            if (type.IsSubclassOf(typeof(Instruction)))
-            {
-                var attr = type.GetCustomAttribute<InstructionAttribute>();
-                if (attr != null)
-                {
-                    var inst = (Instruction)Activator.CreateInstance(type);
-                    InstructionRunners.Add((attr.Name, inst));
-                }
-            }
-        }
+        //PopulateInstructionRunners();
+        InstructionRunners = 
+        [
+            ("clear", new ClearInstruction()),
+            ("elif", new ElifInstruction()),
+            ("else", new ElseInstruction()),
+            ("if", new IfInstruction()),
+            ("input", new InputInstruction()),
+            ("new", new NewVarInstruction()),
+            ("print", new PrintInstruction()),
+            ("set", new SetVarInstruction()),
+            ("str_concat", new StrConcatInstruction()),
+            ("while", new WhileInstruction()),
+        ];
 
         var currentFunc = string.Empty;
         bool inException = false;
@@ -42,17 +46,17 @@ internal class CJProg
             if (!lines[i].StartsWith('\t'))
             {
                 var splt = lines[i].Split([' ']);
-                var funcName = splt[0].Split([':'])[0];
+                var funcName = splt[1].Split(':')[0].Trim();
                 currentFunc = funcName;
-                var retType = lines[i].Split("->")[1].Trim();
+                var retType = splt[0];
                 if (retType == "exception")
                 {
                     //check that the function already exists
-                    if (!Funcs.ContainsKey(funcName))
+                    if (!Funcs.TryGetValue(funcName, out CJFunc? value))
                         throw new Exception("Function not found");
 
                     inException = true;
-                    Funcs[funcName].ExceptionInstrs = new List<(string line, int globalLineNum)>();
+                    value.ExceptionInstrs = [];
                 }
 
                 if (TryGetType(retType, out var ret))
@@ -61,18 +65,19 @@ internal class CJProg
                 var args = new Dictionary<string, CJVar>();
                 //parse args
                 //splt on space, :, ->, and ,
-                var argStrs = lines[i].Split(new string[] { " ", ":", "->", "," }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                argStrs = argStrs.Skip(1).Take(argStrs.Length - 2).ToArray();
+                var argStrs = lines[i].Split(lineSeperator, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                argStrs = argStrs.Skip(2).ToArray();
                 var exceptionVarName = string.Empty;
                 var argCount = 0;
                 for (int j = 0; j < argStrs.Length; j += 2)
                 {
-                    //testFunc: str name, i8 age -> i32
-                    var argName = argStrs[j + 1];
+                    //i32 testFunc: i32 age, str name
                     var typeStr = argStrs[j];
+                    var argName = argStrs[j + 1];
+
                     var isArray = typeStr.EndsWith("[]");
                     if (isArray)
-                        typeStr = typeStr.Substring(0, typeStr.Length - 2);
+                        typeStr = typeStr[..^2];
 
                     if (!TryGetType(typeStr, out var argType))
                         throw new Exception("Invalid type");
@@ -147,10 +152,10 @@ internal class CJProg
                 else if (lines[i].StartsWith("\t\t") && inBlock)
                 {
                     if (Funcs[currentFunc].Blocks == null)
-                        Funcs[currentFunc].Blocks = new Dictionary<int, List<(string line, int globalLineNum)>>();
+                        Funcs[currentFunc].Blocks = [];
 
                     if (!Funcs[currentFunc].Blocks.ContainsKey(blockNum))
-                        Funcs[currentFunc].Blocks.Add(blockNum, new List<(string line, int globalLineNum)>());
+                        Funcs[currentFunc].Blocks.Add(blockNum, []);
 
                     Funcs[currentFunc].Blocks[blockNum].Add((lines[i].Trim(), i));
                     
@@ -171,13 +176,32 @@ internal class CJProg
         }
     }
 
+    //private static void PopulateInstructionRunners()
+    //{
+    //    //populate instruction runners based on attributes
+    //    var types = Assembly.GetExecutingAssembly().GetTypes();
+    //    foreach (var type in types)
+    //    {
+    //        if (type.IsSubclassOf(typeof(Instruction)))
+    //        {
+    //            var attr = type.GetCustomAttribute<InstructionAttribute>();
+    //            if (attr != null)
+    //            {
+    //                var inst = (Instruction?)Activator.CreateInstance(type) ?? 
+    //                    throw new Exception("Failed to create instruction");
+
+    //                InstructionRunners.Add((attr.Name, inst));
+    //            }
+    //        }
+    //    }
+    //}
     public void Execute()
     {
         //find main
-        if (!Funcs.ContainsKey("main"))
+        if (!Funcs.TryGetValue("main", out CJFunc? value))
             throw new Exception("No main function found");
 
-        var currentFunc = Funcs["main"];
+        var currentFunc = value;
 
         try
         {
@@ -186,7 +210,7 @@ internal class CJProg
         catch (Exception e)
         {
             currentFunc.ErrorMessage = e.Message;
-            if (currentFunc.ExceptionInstrs.Any())
+            if (currentFunc.ExceptionInstrs.Count != 0)
             {
                 currentFunc.Args.Add(currentFunc.ErrorVarName, new CJVar
                 {
@@ -241,15 +265,15 @@ internal class CJProg
         //age + 1 - 4 + testInt
         object? val = null;
         //split on operators
-        var splt = line.Split(new char[] { '+', '-', '*', '/', '%'}, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var splt = line.Split(operationSeperator, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
         var operators = line.Where(c => c == '+' || c == '-' || c == '*' || c == '/' || c == '%').ToArray();
 
         if (splt.Length == 1)
         {
-            if (func.Locals.ContainsKey(splt[0]))
+            if (func.Locals.TryGetValue(splt[0], out CJVar? value))
             {
-                val = func.Locals[splt[0]].Value;
+                val = value.Value;
                 return true;
             }
             else
@@ -278,15 +302,15 @@ internal class CJProg
             var isInt = true;
             for (int i = 0; i < splt.Length; i++)
             {
-                if (func.Locals.ContainsKey(splt[i]))
+                if (func.Locals.TryGetValue(splt[i], out CJVar? value))
                 {
-                    if (func.Locals[splt[i]].Type == CJVarType.f32 || func.Locals[splt[i]].Type == CJVarType.f64)
+                    if (value.Type == CJVarType.f32 || value.Type == CJVarType.f64)
                         isInt = false;
 
                     if (isInt)
-                        total += Convert.ToInt32(func.Locals[splt[i]].Value);
+                        total += Convert.ToInt32(value.Value);
                     else
-                        totalD += Convert.ToDouble(func.Locals[splt[i]].Value);
+                        totalD += Convert.ToDouble(value.Value);
                 }
                 else
                 {
@@ -527,10 +551,10 @@ internal class CJProg
             {
                 if (varName != string.Empty)
                 {
-                    if (!currentFunc.Locals.ContainsKey(varName))
+                    if (!currentFunc.Locals.TryGetValue(varName, out CJVar? value))
                         throw new Exception("Variable not found");
 
-                    str += currentFunc.Locals[varName].Value;
+                    str += value.Value;
                     varName = string.Empty;
                 }
                 continue;
@@ -550,10 +574,10 @@ internal class CJProg
             
             if (i == line.Length - 1)
             {
-                if (!currentFunc.Locals.ContainsKey(varName))
+                if (!currentFunc.Locals.TryGetValue(varName, out CJVar? value))
                     throw new Exception("Variable not found");
 
-                str += currentFunc.Locals[varName].Value;
+                str += value.Value;
             }
         }
 

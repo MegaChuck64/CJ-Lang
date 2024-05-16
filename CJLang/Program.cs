@@ -24,7 +24,7 @@ namespace CJLang
             }
             catch(Exception e)
             {
-                Console.Error.WriteLine(e.Message);
+                Console.WriteLine("ERROR: " + e.Message);
             }
         }
     }

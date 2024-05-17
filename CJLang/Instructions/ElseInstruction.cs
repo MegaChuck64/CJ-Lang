@@ -1,4 +1,5 @@
-﻿using CJLang.Lang;
+﻿using CJLang.Execution;
+using CJLang.Lang;
 
 namespace CJLang.Instructions;
 
@@ -11,7 +12,7 @@ internal class ElseInstruction : Instruction
         {
             var lines = currentFunc.Blocks[globalLineNum];
 
-            CJProg.ProcessLines(lines, currentFunc, CJProg.InstructionRunners);
+            Executor.ProcessLines(lines, currentFunc);
 
             currentFunc.LastBlockConditionResult = null;
         }

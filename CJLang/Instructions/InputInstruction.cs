@@ -9,7 +9,7 @@ internal class InputInstruction : Instruction
     {
         var splt = line.Split(['(']);
         var prmpt = splt[1].Split([')'])[0];
-        prmpt = prmpt.Substring(1, prmpt.Length - 2);
+        prmpt = prmpt[1..^1];
         Console.WriteLine(prmpt);
         var input = Console.ReadLine();
 
@@ -18,13 +18,13 @@ internal class InputInstruction : Instruction
 
         var destVar = line.Split(["->"], StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)[1];
 
-        if (!currentFunc.Locals.ContainsKey(destVar))
+        if (!currentFunc.Locals.TryGetValue(destVar, out CJVar? value))
             throw new Exception("Variable not found");
 
-        if (currentFunc.Locals[destVar].Type != CJVarType.str)
+        if (value.Type != CJVarType.str)
             throw new Exception("Invalid type");
 
-        currentFunc.Locals[destVar].Value = input;
+        value.Value = input;
 
     }
 }

@@ -1,42 +1,45 @@
-﻿using CJLang.Lang;
+﻿using CJLang.Execution;
+using CJLang.Lang;
 
 namespace CJLang.Instructions;
 
 [Instruction("set", "Set a variable's value")]
 internal class SetVarInstruction : Instruction
 {
+    internal static readonly char[] closeParenSeperator = [')', '"'];
+    internal static readonly char[] openParenSeperator = ['('];
+
     public override void Run(CJFunc currentFunc, string line, int globalLineNum, int localLineNum)
     {
         //set i8(5) -> userAge
 
         var splt = line.Split([' ']);
-        var varType = splt[1].Split(new char[] { '(' }, StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)[0];
-        if (!CJProg.TryGetType(varType, out var type))
+        var varType = splt[1].Split(openParenSeperator, StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)[0];
+        if (!Helper.TryGetType(varType, out var type))
             throw new Exception("Invalid type");
 
         var destVar = line.Split(["->", " "], StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).Last();
 
-        if (!currentFunc.Locals.ContainsKey(destVar))
+        if (!currentFunc.Locals.TryGetValue(destVar, out CJVar? value))
             throw new Exception("Variable not found");
 
         //check if initialization between ()
         splt = line.Split(['(']);
-        splt = splt[1].Split(new char[] { ')', '"' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        splt = splt[1].Split(closeParenSeperator, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
-        object? initVal = null; 
 
         //set u8(age + 1) -> age
         if (splt.Length == 0)
             throw new Exception("Invalid initialization");
 
+
+        object? initVal;
         //evaluating expression
         //check if contains operator
         if (splt[0].Contains('+') || splt[0].Contains('-') || splt[0].Contains('*') || splt[0].Contains('/'))
         {
-            var val = CJProg.EvaluateArithmatic(currentFunc, splt[0]);
-            if (val == null)
+            var val = Helper.EvaluateArithmatic(currentFunc, splt[0]) ?? 
                 throw new Exception("Invalid expression");
-
             initVal = val;
         }
         else
@@ -44,7 +47,7 @@ internal class SetVarInstruction : Instruction
             //no initialization
             if (splt[0].StartsWith("->"))
             {
-                initVal = CJProg.DefaultVal(type);
+                initVal = Helper.DefaultVal(type);
             }
             else
             {
@@ -52,25 +55,23 @@ internal class SetVarInstruction : Instruction
                 var val = splt[0];
 
                 if (val.StartsWith('"') && val.EndsWith('"'))
-                    initVal = val.Substring(1, val.Length - 2);
+                    initVal = val[1..^1];
                 else
                 {
-                    if (!currentFunc.Locals.ContainsKey(val))
+                    if (!currentFunc.Locals.TryGetValue(val, out CJVar? varVal))
                         throw new Exception("Variable not found");
 
-                    if (currentFunc.Locals[val].Type != type && currentFunc.Locals[val].Type != CJVarType.str)
+                    if (varVal.Type != type && varVal.Type != CJVarType.str)
                         throw new Exception("Invalid type");
 
                     initVal =
-                        currentFunc.Locals[val].Type == CJVarType.str ?
-                        CJProg.GetValFromStr(type, currentFunc.Locals[val].Value as string ?? CJProg.DefaultVal(type)?.ToString() ?? "0") :
-                        currentFunc.Locals[val].Value;
+                        varVal.Type == CJVarType.str ?
+                        Helper.GetValFromStr(type, varVal.Value as string ?? Helper.DefaultVal(type)?.ToString() ?? "0") : varVal.Value;
                 }
             }
         }
 
-
-        currentFunc.Locals[destVar].Value = initVal;
+        value.Value = initVal;
 
     }
 }

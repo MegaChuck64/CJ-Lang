@@ -1,4 +1,5 @@
-﻿using CJLang.Lang;
+﻿using CJLang.Execution;
+using CJLang.Lang;
 namespace CJLang.Instructions;
 
 
@@ -11,12 +12,11 @@ internal class StrConcatInstruction : Instruction
         var splt = line.Split(['(']);
         var prmpt = splt[1].Split([')'])[0];
         var destVar = line.Split(["->"], StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)[1];
-        if (!currentFunc.Locals.ContainsKey(destVar))
+        if (!currentFunc.Locals.TryGetValue(destVar, out CJVar? value))
             throw new Exception("Variable not found");
 
-        var str = CJProg.GetStrFromConcat(currentFunc, prmpt);
-
-        currentFunc.Locals[destVar].Value = str;
+        var str = Helper.GetStrFromConcat(currentFunc, prmpt);
+        value.Value = str;
 
     }
 }

@@ -1,5 +1,5 @@
 ﻿
-using CJLang.Lang;
+using CJLang.Execution;
 
 namespace CJLang
 {
@@ -19,8 +19,8 @@ namespace CJLang
             try
             {
                 var lines = File.ReadAllLines(args[0]).ToList();
-                var prog = new CJProg(lines);
-                prog.Execute();
+                var prog = Parser.Parse(lines);
+                Executor.Execute(prog);
             }
             catch(Exception e)
             {

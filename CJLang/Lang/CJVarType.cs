@@ -15,5 +15,5 @@ public enum CJVarType
     f64,
     str,
     _bool,
-    _null,
+    _void
 }

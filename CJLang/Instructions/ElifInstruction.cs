@@ -1,4 +1,5 @@
-﻿using CJLang.Lang;
+﻿using CJLang.Execution;
+using CJLang.Lang;
 
 namespace CJLang.Instructions;
 
@@ -40,7 +41,7 @@ internal class ElifInstruction : Instruction
             if (cond)
             {
                 var lines = currentFunc.Blocks[globalLineNum];
-                CJProg.ProcessLines(lines, currentFunc, CJProg.InstructionRunners);
+                Executor.ProcessLines(lines, currentFunc);
             }
         }
         else if (splt2.Length == 3)
@@ -49,8 +50,8 @@ internal class ElifInstruction : Instruction
             var op = splt2[1];
             var right = splt2[2];
 
-            var leftType = CJVarType._null;
-            var rightType = CJVarType._null;
+            var leftType = CJVarType._void;
+            var rightType = CJVarType._void;
             if (currentFunc.Locals.TryGetValue(left, out var varLeft))
             {
                 left = varLeft?.Value?.ToString() ?? "0";
@@ -126,13 +127,13 @@ internal class ElifInstruction : Instruction
             var type = leftType == CJVarType.f32 || leftType == CJVarType.f64 || rightType == CJVarType.f32 || rightType == CJVarType.f64 ? CJVarType.f64 : leftType;
 
 
-            bool cond = CJProg.EvaluateCondition(type, str);
+            bool cond = Helper.EvaluateCondition(type, str);
             currentFunc.LastBlockConditionResult = cond;
 
             if (cond)
             {
                 var lines = currentFunc.Blocks[globalLineNum];
-                CJProg.ProcessLines(lines, currentFunc, CJProg.InstructionRunners);
+                Executor.ProcessLines(lines, currentFunc);
             }
         }
         else

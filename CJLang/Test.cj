@@ -44,9 +44,16 @@ exception add_test: str errorMessage
 
 //WELCOME MESSAGE
 str welcome_message: str name, u8 age
-	str_concat("\nName: ", name, "\nAge: ", age)->name
+	str_concat("\nName: ", namev, "\nAge: ", age)->name
 	return name
 
 
 exception welcome_message : str errorMessage
-	print("welcome_message(name, age): ", errorMessage)
+	if (age > 120)
+		throw("welcome_message(name, age): ", "Invalid age")
+	elif (age < 0)
+		throw("welcome_message(name, age): ", "Invalid age")
+	elif (name == "")
+		throw("welcome_message(name, age): ", errorMessage)
+	else
+		return errorMessage

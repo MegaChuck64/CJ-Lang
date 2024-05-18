@@ -15,6 +15,8 @@ internal static class Executor
 
     public static CJFunc? CurrentFunc { get; set; }
 
+    public static bool InExceptionHandler { get; set; }
+
     public static void Execute(CJProg prog)
     {
         Prog = prog;
@@ -32,6 +34,7 @@ internal static class Executor
             ("str_concat", new StrConcatInstruction()),
             ("while", new WhileInstruction()),
             ("return", new ReturnInstruction()),
+            ("throw", new ThrowInstruction()),
         ];
 
         //find main
@@ -49,6 +52,7 @@ internal static class Executor
             CurrentFunc.ErrorMessage = e.ToString();
             if (CurrentFunc.ExceptionInstrs.Count != 0)
             {
+                InExceptionHandler = true;
                 CurrentFunc.Args.Add(CurrentFunc.ErrorVarName, new CJVar
                 {
                     Name = CurrentFunc.ErrorVarName,
@@ -56,6 +60,8 @@ internal static class Executor
                     Value = CurrentFunc.ErrorMessage,
                 });
                 ProcessLines(CurrentFunc.ExceptionInstrs, CurrentFunc);
+
+                InExceptionHandler = false;
             }
             else throw;
         }
@@ -89,13 +95,45 @@ internal static class Executor
                     try
                     {
                         instr.Run(func, line, globalLineNum, localLineNum);
+                        if (name == "return" || name == "throw")
+                            return;
                     }
                     catch(Exception e)
                     {
                         if (e is ExecutorException)
-                            throw;
+                        {
+                            var inException = InExceptionHandler;
+                            var thrw = name == "throw";
+                            var ret = name == "return";
+                            if (inException && thrw)
+                                throw;
+                            else if (inException && ret)
+                            {
+                                RetVal = new CJVar
+                                {
+                                    Name = "return",
+                                    Type = CJVarType._void,
+                                    Value = null,
+                                };
+                                return;
+                            }
+                            else if (!thrw && !ret)
+                                return;
+                            else if (thrw)
+                                throw;
+                            else if (ret)
+                            {
+                                RetVal = new CJVar
+                                {
+                                    Name = "return",
+                                    Type = CJVarType._void,
+                                    Value = null,
+                                };
+                                return;
+                            }
+                        }
                         else
-                            throw new ExecutorException(e.Message, globalLineNum);                        
+                            throw new ExecutorException(e.Message, globalLineNum);
                     }
                 }
                 else

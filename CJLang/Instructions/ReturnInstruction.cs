@@ -23,7 +23,7 @@ internal class ReturnInstruction : Instruction
             }
             else
             {
-                throw new Exception("Invalid return value");
+                throw new ExecutorException($"Variable '{value}' not found", globalLineNum);
             }
         }
     }

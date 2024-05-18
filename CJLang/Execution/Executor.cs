@@ -13,6 +13,8 @@ internal static class Executor
 
     public static CJProg Prog { get; private set; } = null!;
 
+    public static CJFunc? CurrentFunc { get; set; }
+
     public static void Execute(CJProg prog)
     {
         Prog = prog;
@@ -36,33 +38,37 @@ internal static class Executor
         if (!prog.Funcs.TryGetValue("main", out CJFunc? value))
             throw new Exception("No main function found");
 
-        var currentFunc = value;
+        CurrentFunc = value;
 
         try
         {
-            ProcessLines(currentFunc.Instrs, currentFunc);
+            ProcessLines(CurrentFunc.Instrs, CurrentFunc);
         }
-        catch (Exception e)
+        catch (ExecutorException e)
         {
-            currentFunc.ErrorMessage = e.Message;
-            if (currentFunc.ExceptionInstrs.Count != 0)
+            CurrentFunc.ErrorMessage = e.ToString();
+            if (CurrentFunc.ExceptionInstrs.Count != 0)
             {
-                currentFunc.Args.Add(currentFunc.ErrorVarName, new CJVar
+                CurrentFunc.Args.Add(CurrentFunc.ErrorVarName, new CJVar
                 {
-                    Name = currentFunc.ErrorVarName,
+                    Name = CurrentFunc.ErrorVarName,
                     Type = CJVarType.str,
-                    Value = e.Message,
+                    Value = CurrentFunc.ErrorMessage,
                 });
-                ProcessLines(currentFunc.ExceptionInstrs, currentFunc);
+                ProcessLines(CurrentFunc.ExceptionInstrs, CurrentFunc);
             }
+            else throw;
         }
     }
 
     public static void ProcessLines(List<(string line, int globalLineNum)> instrs, CJFunc func)
     {
+        CurrentFunc = func;
         //add args to locals
         foreach (var arg in func.Args)
         {
+            func.Locals.Remove(arg.Key);
+
             func.Locals.Add(arg.Key, arg.Value);
         }
 
@@ -84,11 +90,12 @@ internal static class Executor
                     {
                         instr.Run(func, line, globalLineNum, localLineNum);
                     }
-                    catch (Exception e)
+                    catch(Exception e)
                     {
-                        func.ErrorMessage = e.Message;
-
-                        throw new Exception($"Error on line {globalLineNum + 1}: {e.Message}");
+                        if (e is ExecutorException)
+                            throw;
+                        else
+                            throw new ExecutorException(e.Message, globalLineNum);                        
                     }
                 }
                 else

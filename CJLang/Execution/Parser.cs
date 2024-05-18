@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using CJLang.Lang;
+﻿using CJLang.Lang;
 
 namespace CJLang.Execution;
 
@@ -38,7 +33,7 @@ internal static class Parser
                 {
                     //check that the function already exists
                     if (!Funcs.TryGetValue(funcName, out CJFunc? value))
-                        throw new Exception("Function not found");
+                        throw new ExecutorException($"Function '{funcName}' not found", i);
 
                     inException = true;
                     value.ExceptionInstrs = [];
@@ -46,7 +41,7 @@ internal static class Parser
                 }
 
                 if (!Helper.TryGetType(retType, out var ret))
-                    throw new Exception("Invalid return type");
+                    throw new ExecutorException($"Invalid return type '{retType}'", i);
 
                 var args = new Dictionary<string, CJVar>();
                 //parse args
@@ -66,18 +61,18 @@ internal static class Parser
                         typeStr = typeStr[..^2];
 
                     if (!Helper.TryGetType(typeStr, out var argType))
-                        throw new Exception("Invalid type");
+                        throw new ExecutorException($"Invalid type '{typeStr}'", i);
 
                     argCount++;
 
                     if (inException)
                     {
                         if (argCount > 1)
-                            throw new Exception("Exception functions can only have one argument");
+                            throw new ExecutorException($"Exception functions can only have one argument", i);
                         if (argType != CJVarType.str)
-                            throw new Exception("Exception functions can only have a string argument");
+                            throw new ExecutorException($"Exception functions can only have a string argument", i);
                         if (isArray)
-                            throw new Exception("Exception functions can only have a single string argument");
+                            throw new ExecutorException($"Exception functions can only have a single string argument", i);
 
                         exceptionVarName = argName;
                         //args.Add(argName, new CJVar
@@ -130,7 +125,7 @@ internal static class Parser
                 else if (lines[i].Trim().StartsWith("else") || lines[i].Trim().StartsWith("elif"))
                 {
                     if (!inBlock)
-                        throw new Exception("Else without if");
+                        throw new ExecutorException($"Else without if", i);
 
                     inBlock = true;
                     blockNum = i;

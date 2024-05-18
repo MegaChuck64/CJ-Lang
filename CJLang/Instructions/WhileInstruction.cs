@@ -30,7 +30,7 @@ internal class WhileInstruction : Instruction
             }
             else
             {
-                throw new Exception("Invalid condition");
+                throw new ExecutorException($"Invalid format for conditional", globalLinNum);
             }
             currentFunc.LastBlockConditionResult = cond;
             if (cond)
@@ -116,27 +116,33 @@ internal class WhileInstruction : Instruction
                 leftType >= CJVarType.i8 &&
                 rightType <= CJVarType.f64 &&
                 rightType >= CJVarType.i8))
-                throw new Exception("Invalid type");
+                throw new ExecutorException($"Invalid type left: '{leftType}' or right: {rightType}", globalLinNum);
 
             var str = $"{left} {op} {right}";
             var type = leftType == CJVarType.f32 || leftType == CJVarType.f64 || rightType == CJVarType.f32 || rightType == CJVarType.f64 ? CJVarType.f64 : leftType;
 
 
-            bool cond = Helper.EvaluateCondition(type, str);
+            bool cond = Helper.EvaluateCondition(type, str, globalLinNum + 1);
             currentFunc.LastBlockConditionResult = cond;
 
             if (cond)
             {
                 var lines = currentFunc.Blocks[globalLinNum];
 
+                var localsCopy = new Dictionary<string, CJVar>(currentFunc.Locals);
+
                 Executor.ProcessLines(lines, currentFunc);
 
+                //restore locals
+                currentFunc.Locals = localsCopy;
+
                 Executor.NextLine = localLineNum;
+
             }
         }
         else
         {
-            throw new Exception("Invalid condition");
+            throw new ExecutorException($"Invalid format for conditional", globalLinNum);
         }
     }
 }

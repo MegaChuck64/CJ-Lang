@@ -1,4 +1,5 @@
-﻿using CJLang.Lang;
+﻿using CJLang.Execution;
+using CJLang.Lang;
 
 namespace CJLang.Instructions;
 
@@ -7,9 +8,11 @@ namespace CJLang.Instructions;
 [Instruction("clear", "Clears the terminal")]
 internal class ClearInstruction : Instruction
 {
+    internal static readonly char[] separator = ['(', ' ', ')'];
+
     public override void Run(CJFunc currentFunc, string line, int globalLineNum, int localLineNum)
     {
-        var splt = line.Split(new[] { '(', ' ', ')' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var splt = line.Split(separator, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
         //clear()
         if (splt.Length == 1 && splt[0] == "clear")
@@ -17,6 +20,6 @@ internal class ClearInstruction : Instruction
             Console.Clear();
         }
         else
-            throw new Exception("Invalid usage of clear. Expected 'clear()'");
+            throw new ExecutorException("Invalid usage of clear. Expected 'clear()'", globalLineNum);
     }
 }

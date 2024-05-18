@@ -24,10 +24,10 @@ internal class CallFunctionInstruction : Instruction
         var args = Helper.ParseArgs(prmpt);
 
         if (!Executor.Prog.Funcs.TryGetValue(funcName, out CJFunc? func))
-            throw new Exception("Function not found");
+            throw new ExecutorException($"Function not found '{funcName}'", globalLineNum);
 
         if (func.Args.Count != args.Count)
-            throw new Exception("Invalid number of arguments");
+            throw new ExecutorException($"Invalid number of arguments for {funcName}", globalLineNum);
 
 
         for (int i = 0; i < func.Args.Count; i++)
@@ -53,7 +53,7 @@ internal class CallFunctionInstruction : Instruction
             }
             else if (arg.Type != type)
             {
-                throw new Exception("Invalid argument type");
+                throw new ExecutorException($"Invalid type for argument #{i + 1} for {funcName}. Expecting {arg.Type}", globalLineNum);
             }
 
             //set the value
@@ -77,7 +77,7 @@ internal class CallFunctionInstruction : Instruction
             }
             else
             {
-                throw new Exception("Invalid return value");
+                throw new ExecutorException($"Varaible not found '{destVar}'", globalLineNum);
             }
         }
 

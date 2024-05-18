@@ -16,12 +16,13 @@ internal class SetVarInstruction : Instruction
         var splt = line.Split([' ']);
         var varType = splt[1].Split(openParenSeperator, StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)[0];
         if (!Helper.TryGetType(varType, out var type))
-            throw new Exception("Invalid type");
+            throw new ExecutorException($"Invalid type '{varType}'", globalLineNum);
 
         var destVar = line.Split(["->", " "], StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).Last();
 
         if (!currentFunc.Locals.TryGetValue(destVar, out CJVar? value))
-            throw new Exception("Variable not found");
+            throw new ExecutorException($"Variable '{destVar}' not found", globalLineNum);
+
 
         //check if initialization between ()
         splt = line.Split(['(']);
@@ -30,7 +31,7 @@ internal class SetVarInstruction : Instruction
 
         //set u8(age + 1) -> age
         if (splt.Length == 0)
-            throw new Exception("Invalid initialization");
+            throw new ExecutorException($"No variable assigned to returned value of construction", globalLineNum);
 
 
         object? initVal;
@@ -38,8 +39,8 @@ internal class SetVarInstruction : Instruction
         //check if contains operator
         if (splt[0].Contains('+') || splt[0].Contains('-') || splt[0].Contains('*') || splt[0].Contains('/'))
         {
-            var val = Helper.EvaluateArithmatic(currentFunc, splt[0]) ?? 
-                throw new Exception("Invalid expression");
+            var val = Helper.EvaluateArithmatic(currentFunc, splt[0], globalLineNum) ?? 
+                throw new ExecutorException($"Invalid arithmatic expression '{splt[0]}'", globalLineNum);
             initVal = val;
         }
         else
@@ -59,10 +60,10 @@ internal class SetVarInstruction : Instruction
                 else
                 {
                     if (!currentFunc.Locals.TryGetValue(val, out CJVar? varVal))
-                        throw new Exception("Variable not found");
+                        throw new ExecutorException($"Variable '{val}' not found", globalLineNum);
 
                     if (varVal.Type != type && varVal.Type != CJVarType.str)
-                        throw new Exception("Invalid type");
+                        throw new ExecutorException($"Invalid type '{varVal.Type}' passed to set(). Expecting '{type}'. ", globalLineNum);
 
                     initVal =
                         varVal.Type == CJVarType.str ?

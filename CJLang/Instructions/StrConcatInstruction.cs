@@ -13,9 +13,9 @@ internal class StrConcatInstruction : Instruction
         var prmpt = splt[1].Split([')'])[0];
         var destVar = line.Split(["->"], StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)[1];
         if (!currentFunc.Locals.TryGetValue(destVar, out CJVar? value))
-            throw new Exception("Variable not found");
+            throw new ExecutorException($"Variable not found '{destVar}'", globalLineNum);
 
-        var str = Helper.GetStrFromConcat(currentFunc, prmpt);
+        var str = Helper.GetStrFromConcat(currentFunc, prmpt, globalLineNum);
         value.Value = str;
 
     }

@@ -30,7 +30,7 @@ internal class IfInstruction : Instruction
             }
             else
             {
-                throw new Exception("Invalid condition");
+                throw new ExecutorException($"Invalid format for conditional", globalLineNum);
             }
             currentFunc.LastBlockConditionResult = cond;
             if (cond)
@@ -116,13 +116,14 @@ internal class IfInstruction : Instruction
                 leftType >= CJVarType.i8 && 
                 rightType <= CJVarType.f64 && 
                 rightType >= CJVarType.i8))
-                throw new Exception("Invalid type");
+                throw new ExecutorException($"Conditional type mismatch '{leftType}' and '{rightType}' are not comparable", globalLineNum);
+
 
             var str = $"{left} {op} {right}";
             var type = leftType == CJVarType.f32 || leftType == CJVarType.f64 || rightType == CJVarType.f32 || rightType == CJVarType.f64 ? CJVarType.f64 : leftType;
 
 
-            bool cond = Helper.EvaluateCondition(type, str);
+            bool cond = Helper.EvaluateCondition(type, str, globalLineNum);
             currentFunc.LastBlockConditionResult = cond;
 
             if (cond)
@@ -133,7 +134,7 @@ internal class IfInstruction : Instruction
         }
         else
         {
-            throw new Exception("Invalid condition");
+            throw new ExecutorException($"Invalid format for conditional", globalLineNum);
         }
     }
 }

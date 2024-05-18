@@ -56,7 +56,7 @@ public static class Helper
     }
 
 
-    internal static object? EvaluateArithmatic(CJFunc func, string line)
+    internal static object? EvaluateArithmatic(CJFunc func, string line, int lineNum)
     {
         //age + 1 - 4 + testInt
         object? val = null;
@@ -121,8 +121,7 @@ public static class Helper
                     }
                     else
                     {
-                        val = null;
-                        return false;
+                        throw new ExecutorException($"Invalid value or variable name '{splt[i]}'", lineNum);
                     }
                 }
             }
@@ -141,7 +140,7 @@ public static class Helper
 
     }
 
-    public static bool EvaluateCondition(CJVarType type, string line)
+    public static bool EvaluateCondition(CJVarType type, string line, int lineNum)
     {
         if (type == CJVarType._bool)
         {
@@ -159,7 +158,7 @@ public static class Helper
             var right = splt[2];
 
             if (op != "==" && op != "!=")
-                throw new Exception("Invalid operator");
+                throw new ExecutorException($"Invalid operator '{op}'", lineNum);
 
             if (op == "==")
                 return left == right;
@@ -176,7 +175,7 @@ public static class Helper
             var right = splt[2];
 
             if (op != "==" && op != "!=")
-                throw new Exception("Invalid operator");
+                throw new ExecutorException($"Invalid operator '{op}'", lineNum);
 
             if (op == "==")
                 return left == right;
@@ -193,7 +192,7 @@ public static class Helper
             var right = splt[2];
 
             if (!int.TryParse(left, out var l) || !int.TryParse(right, out var r))
-                throw new Exception("Invalid operands");
+                throw new ExecutorException($"Invalid operands left: '{left}' or right: '{right}'", lineNum);
 
             return op switch
             {
@@ -214,7 +213,7 @@ public static class Helper
             var right = splt[2];
 
             if (!double.TryParse(left, out var l) || !double.TryParse(right, out var r))
-                throw new Exception("Invalid operands");
+                throw new ExecutorException($"Invalid operands left: '{left}' or right: '{right}'", lineNum);
 
             return op switch
             {
@@ -228,7 +227,7 @@ public static class Helper
             };
         }
         else
-            throw new Exception("Invalid type");
+            throw new ExecutorException($"Invalid type '{type}'", lineNum);
 
     }
 
@@ -274,7 +273,7 @@ public static class Helper
         };
     }
 
-    internal static string GetStrFromConcat(CJFunc currentFunc, string line)
+    internal static string GetStrFromConcat(CJFunc currentFunc, string line, int lineNum)
     {
         //"Hello, ", userName, ". You are ", userAgeStr, " years old.\n"
         var str = string.Empty;
@@ -300,7 +299,7 @@ public static class Helper
                 if (varName != string.Empty)
                 {
                     if (!currentFunc.Locals.TryGetValue(varName, out CJVar? value))
-                        throw new Exception("Variable not found");
+                        throw new ExecutorException($"Variable '{varName}' not found", lineNum);
 
                     str += value.Value;
                     varName = string.Empty;
@@ -323,7 +322,7 @@ public static class Helper
             if (i == line.Length - 1)
             {
                 if (!currentFunc.Locals.TryGetValue(varName, out CJVar? value))
-                    throw new Exception("Variable not found");
+                    throw new ExecutorException($"Variable '{varName}' not found", lineNum);
 
                 str += value.Value;
             }

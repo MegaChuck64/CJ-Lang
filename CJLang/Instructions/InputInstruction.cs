@@ -1,4 +1,5 @@
-﻿using CJLang.Lang;
+﻿using CJLang.Execution;
+using CJLang.Lang;
 
 namespace CJLang.Instructions;
 
@@ -19,10 +20,11 @@ internal class InputInstruction : Instruction
         var destVar = line.Split(["->"], StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)[1];
 
         if (!currentFunc.Locals.TryGetValue(destVar, out CJVar? value))
-            throw new Exception("Variable not found");
+            throw new ExecutorException($"Variable not found '{destVar}'", globalLineNum);
+
 
         if (value.Type != CJVarType.str)
-            throw new Exception("Invalid type");
+            throw new ExecutorException($"Invalid type '{value.Type}' passed to input(). Expecting 'str'. ", globalLineNum);
 
         value.Value = input;
 

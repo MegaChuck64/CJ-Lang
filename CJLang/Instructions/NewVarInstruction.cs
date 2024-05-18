@@ -19,12 +19,12 @@ internal class NewVarInstruction : Instruction
 
 
         if (!Helper.TryGetType(varType, out var type))
-            throw new Exception("Invalid type");
+            throw new ExecutorException($"Invalid type '{varType}'", globalLineNum);
 
         var destVar = line.Split(["->", " "], StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).Last();
 
         if (currentFunc.Locals.ContainsKey(destVar))
-            throw new Exception("Variable already exists");
+            throw new ExecutorException($"Cannot create new variable with name '{destVar}'. Variable name is already used.", globalLineNum);
 
         //check if initialization between ()
         splt = line.Split(['(']);
@@ -47,7 +47,7 @@ internal class NewVarInstruction : Instruction
             else
             {
                 var obj = Helper.GetObjectFromVarOrLiteral(type, val, currentFunc) ?? 
-                    throw new Exception("Invalid initialization");
+                    throw new ExecutorException($"Invalid initialization for type '{type}'", globalLineNum);
 
                 initVal = obj;
             }

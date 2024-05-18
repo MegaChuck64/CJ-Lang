@@ -1,5 +1,6 @@
 ﻿using CJLang.Execution;
 using CJLang.Lang;
+using System.Linq;
 
 namespace CJLang.Instructions;
 
@@ -11,10 +12,10 @@ internal class PrintInstruction : Instruction
     public override void Run(CJFunc currentFunc, string line, int globalLineNum, int localLineNum)
     {
         //print("Hello, ", userName, ". You are ", userAgeStr, " years old.\n")
-        var splt = line.Split(['(']);
-        var prmpt = splt[1].Split([')'])[0];
+        var start = line.IndexOf('(');
+        var prmpt = line.Substring(start + 1, line.Length - start - 2);
 
-        var str = Helper.GetStrFromConcat(currentFunc, prmpt);
+        var str = Helper.GetStrFromConcat(currentFunc, prmpt, globalLineNum + 1);
 
         var lines = str.Split(separator, StringSplitOptions.None);
         foreach (var l in lines)

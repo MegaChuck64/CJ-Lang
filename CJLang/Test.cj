@@ -29,12 +29,13 @@ void main:
 
 exception main: str errorMessage
 	print("main(): ", errorMessage)
+	throw("THROWN: ", errorMessage)
 
 
 
 //ADD TEST 
 i32 add_test: i32 a, i32 b
-	set i32(a + b) -> a
+	set i32(a + c) -> a
 	return a
 
 exception add_test: str errorMessage
@@ -44,9 +45,12 @@ exception add_test: str errorMessage
 
 //WELCOME MESSAGE
 str welcome_message: str name, u8 age
-	str_concat("\nName: ", name, "\nAge: ", age)->name
+	str_concat("\nName: ", namec, "\nAge: ", age)->name
 	return name
 
 
 exception welcome_message : str errorMessage
-	print("welcome_message(name, age): ", errorMessage)
+	if (age > 20):
+		throw("welcome_message(name, age) ", errorMessage)
+	elif (age == 18):
+		return errorMessage

@@ -6,6 +6,12 @@ internal class ReturnInstruction : Instruction
 {
     public override void Run(CJFunc currentFunc, string line, int globalLineNum, int localLineNum)
     {
+        if (Executor.ExceptionReturned)
+        {
+            Executor.ExceptionReturned = false;
+            return;
+        }
+
         //return
         //return <value>
         var splt = line.Split([' ']);

@@ -11,5 +11,6 @@ internal class CJFunc
     public bool? LastBlockConditionResult { get; set; }
     public string ErrorMessage { get; set; } = string.Empty;
     public string ErrorVarName { get; set; } = string.Empty;
+    public bool ErrorHandled { get; set; } = false;
     public List<(string line, int globalLineNum)> ExceptionInstrs { get; set; } = [];
 }

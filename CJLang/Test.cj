@@ -28,7 +28,7 @@ void main:
 
 
 exception main: str errorMessage
-	print("main(): ", errorMessage)
+	//print("main(): ", errorMessage)
 	throw("THROWN: ", errorMessage)
 
 

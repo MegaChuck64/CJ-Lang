@@ -131,7 +131,7 @@ internal static class Executor
                         if (CurrentFunc.ErrorHandled)
                         {
                             //CurrentFunc.ErrorHandled = false;
-                            CurrentFunc.ErrorMessage = $"thrown on line {e.Line + 1} -> {e.Message}";//e.line gives us one up the stack trace
+                            CurrentFunc.ErrorMessage = $"thrown on line {e.Line + 1} \n\t-> {e.Message}";//e.line gives us one up the stack trace
                             throw;
                         }
 

@@ -24,7 +24,9 @@ namespace CJLang
             }
             catch(Exception e)
             {
-                Console.WriteLine("Unhandled Exception: " + e.Message);
+                var msg = e.Message;//e.Message.Replace("->", "\n\t->");
+                Console.Write("Unhandled Exception: ");
+                Console.WriteLine(msg);
             }
         }
     }

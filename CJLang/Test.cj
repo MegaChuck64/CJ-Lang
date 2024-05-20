@@ -28,8 +28,8 @@ void main:
 
 
 exception main: str errorMessage
-	//print("main(): ", errorMessage)
-	throw("THROWN: ", errorMessage)
+	print("main(): ", errorMessage)
+	//throw("THROWN: ", errorMessage)
 
 
 

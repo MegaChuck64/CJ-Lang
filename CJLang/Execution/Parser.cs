@@ -163,4 +163,11 @@ internal static class Parser
 
         return prog;
     }
+
+
+    //internal static CJProg Patse(List<string> lines)
+    //{
+
+    //}
+
 }
